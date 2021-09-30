@@ -18,6 +18,9 @@ function App() {
     setTimeLeft(sessionLength);
   }, [sessionLength]);
 
+  console.log("inside app, outside setInterval, currentSessionType: ", currentSessionType);
+  // after calling setCurrentSessionType('Break'), this line logs, correctly, Break
+
   const isStarted = intervalId !== null;
   function handleStartStopClick() {
     if (isStarted) {
@@ -30,7 +33,12 @@ function App() {
       // if we are in stopped mode:
       // decrement timeLeft by one every second (1000 ms)
       // to do this we'll use setInterval
-      const newIntervalId = setInterval(() => {
+      const newIntervalId = setInterval(() => { // updater function from useState hook doesn't work in this
+                                                // block for some reason; currentSessionType outside this block
+                                                // is updated correctly, but upon entering this block currentSessionType
+                                                // is stuck in "Session"
+        console.log(currentSessionType.toUpperCase());  // this logs SESSION even after calling
+                                                // setCurrentSessionType("Break")
         setTimeLeft(prevTimeLeft => {
           const newTimeLeft = prevTimeLeft - 1;
           if (newTimeLeft >= 0) {
@@ -40,20 +48,24 @@ function App() {
           audioElement.current.play();
           // if session:
           if (currentSessionType === 'Session') {
+            console.log("inside currentSessionType === 'Session' if block, before calling setCurrentSessionType('Break'), currentSessionType: ", currentSessionType);
             // switch to break
             setCurrentSessionType('Break');
+            console.log("inside currentSessionType === 'Session' if block, after calling setCurrentSessionType('Break'), currentSessionType: ", currentSessionType);
             // setTimeLeft to breakLength
             setTimeLeft(breakLength);
           }
           // if break
           else if (currentSessionType === 'Break') {
+            console.log("inside currentSessionType === 'Break' if block, before calling setCurrentSessionType('Session'), currentSessionType: ", currentSessionType);
             // switch to session
             setCurrentSessionType('Session');
+            console.log("inside currentSessionType === 'Break' if block, after calling setCurrentSessionType('Session'), currentSessionType: ", currentSessionType);
             // setTimeLeft to sessionLength
             setTimeLeft(sessionLength);
           }
         });
-      }, 100);
+      }, 1000);
       setIntervalId(newIntervalId);
     }
   }
